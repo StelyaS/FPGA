@@ -24,6 +24,7 @@ module TM1638
 (
     (*mark_debug="true"*)input logic UART,
     input logic iclk,
+    input logic SWITCH,
     (*mark_debug="true"*)input logic rst,
 //    input logic [0:7] CHAR_1 = 8'b0110_0000,
 //    input logic [0:7] CHAR_2 = 8'b1101_1010,
@@ -33,10 +34,10 @@ module TM1638
     (*mark_debug="true"*)output logic dio,
     (*mark_debug="true"*)output logic oclk
 );
-    logic [0:7] CHAR_1 = 8'b0110_0000;
-    logic [0:7] CHAR_2 = 8'b1101_1010;
-    logic [0:7] CHAR_3 = 8'b1111_0010;
-    logic [0:7] CHAR_4 = 8'b0110_0110;
+    logic [0:7] CHAR_1;
+    logic [0:7] CHAR_2;
+    logic [0:7] CHAR_3;
+    logic [0:7] CHAR_4;
     logic [4:0] cnt;
     logic [7:0] index;
     logic [1:0] driver;
@@ -60,7 +61,7 @@ module TM1638
     localparam [0:7] D = 8'b0111_1010;
     localparam [0:7] A = 8'b1110_1110;
     localparam [0:7] T = 8'b0001_1110;
-    logic [0:127] DATA_BUFF = {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, CHAR_1, 8'd0, CHAR_2, 8'd0, CHAR_3, 8'd0, CHAR_4, 8'd0};
+    logic [0:127] DATA_BUFF;
 
     
 always_ff @(posedge iclk)
@@ -79,6 +80,20 @@ always_ff @(posedge iclk)
     intclk = ~intclk; // 100MHz input clock -> 2MHz internal clock -> 1MHz output clock
     cnt <= 5'd0;
     end
+    if (SWITCH)
+    begin
+    CHAR_1 <= 8'b0110_0000;
+    CHAR_2 <= 8'b1101_1010;
+    CHAR_3 <= 8'b1111_0010;
+    CHAR_4 <= 8'b0110_0110;
+    end
+    else
+    begin
+    CHAR_1 <= 8'b0110_0110;
+    CHAR_2 <= 8'b1111_0010;
+    CHAR_3 <= 8'b1101_1010;
+    CHAR_4 <= 8'b0110_0000;
+    end
     end 
     end
  
@@ -96,7 +111,10 @@ always_ff @(posedge intclk or negedge rst)
     else
     begin
     if (UART && (driver == 2'd0))
+    begin
     driver <= 2'd1;
+    DATA_BUFF <= {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, CHAR_1, 8'd0, CHAR_2, 8'd0, CHAR_3, 8'd0, CHAR_4, 8'd0};
+    end
     else if (UART && (driver == 2'd1))
     driver <= 2'd2;
     else if (!UART && (driver == 2'd2))
@@ -239,7 +257,6 @@ SET_CMD_2:
 SET_DATA:
     begin
     dio <= DATA_BUFF[index];
-//    dio <= index[0];
     index <= index + 8'd1;
     if (index == 8'd127)
     begin

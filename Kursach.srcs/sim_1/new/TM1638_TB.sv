@@ -22,6 +22,7 @@
 
 module TM1638_TB;
 reg UART;
+reg SWITCH;
 reg iclk;
 reg rst;
 //reg CHAR_1;
@@ -34,6 +35,7 @@ wire oclk;
 
 TM1638 uut (
 .UART(UART),
+.SWITCH(SWITCH),
 .iclk(iclk),
 .rst(rst),
 //.CHAR_1(CHAR_1),
