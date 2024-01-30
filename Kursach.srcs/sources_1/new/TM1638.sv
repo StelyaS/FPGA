@@ -22,82 +22,121 @@
 
 module TM1638
 (
-    input logic DRIVER,
+    (*mark_debug="true"*)input logic UART,
     input logic iclk,
-    input logic rst,
-    input logic CHAR1,
-    input logic CHAR2,
-    input logic CHAR3,
-    input logic CHAR4,
+    input logic SWITCH,
+    (*mark_debug="true"*)input logic rst,
+//    input logic [0:7] CHAR_1 = 8'b0110_0000,
+//    input logic [0:7] CHAR_2 = 8'b1101_1010,
+//    input logic [0:7] CHAR_3 = 8'b1111_0010,
+//    input logic [0:7] CHAR_4 = 8'b0110_0110,
     (*mark_debug="true"*)output logic stb,
     (*mark_debug="true"*)output logic dio,
     (*mark_debug="true"*)output logic oclk
 );
-
+    logic [0:7] CHAR_1;
+    logic [0:7] CHAR_2;
+    logic [0:7] CHAR_3;
+    logic [0:7] CHAR_4;
     logic [4:0] cnt;
-    logic [7:0] index = 8'd0;
-    logic [3:0] word = 4'd0;
-    logic [7:0] i = 8'd0;
-    logic [4:0] j = 5'd0;
-    logic int_clk = 1'd0;
-    logic [2:0] state;
-    localparam RESET = 3'd0;
+    logic [7:0] index;
+    logic [1:0] driver;
+    logic [7:0] i;
+    logic [4:0] j;
+    (*mark_debug="true"*)logic intclk;
     localparam IDLE = 3'd1;
-    localparam CMD = 3'd2;
-    localparam DATA = 3'd3;
-    localparam DISPLAY = 3'd4;
-    logic [2:0] data_state;
-    localparam SET_CMD_1 = 3'd0;
-    localparam SET_CMD_2 = 3'd1;
-    localparam SET_DATA = 3'd2;
-    localparam SET_CMD_3 = 3'd3;
-    localparam [0:7] CMD_1 = 8'b00000010;
-    localparam [0:7] CMD_2 = 8'b00000011;
-    localparam [0:7] CMD_3 = 8'b11110001;
-    localparam [0:7] D = 8'b01111010;
-    localparam [0:7] A = 8'b11101110;
-    localparam [0:7] T = 8'b00011110;
+    localparam START = 3'd2;
+    localparam CMD = 3'd3;
+    localparam DATA = 3'd4;
+    localparam DISPLAY = 3'd5;
+    logic [2:0] state = IDLE;
+    localparam SET_CMD_1 = 3'd1;
+    localparam SET_CMD_2 = 3'd2;
+    localparam SET_DATA = 3'd3;
+    localparam SET_CMD_3 = 3'd4;
+    logic [2:0] data_state = SET_CMD_1;
+    localparam [0:7] CMD_1 = 8'b0000_0010;
+    localparam [0:7] CMD_2 = 8'b0000_0011;
+    localparam [0:7] CMD_3 = 8'b1111_0001;
+    localparam [0:7] D = 8'b0111_1010;
+    localparam [0:7] A = 8'b1110_1110;
+    localparam [0:7] T = 8'b0001_1110;
+    logic [0:127] DATA_BUFF;
 
-    logic [0:127] DATA_BUFF = {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, CHAR1, 8'd0, CHAR2, 8'd0, CHAR3, 8'd0, CHAR4, 8'd0};
- 
     
 always_ff @(posedge iclk)
+    begin
+    if (!rst)
+    begin
+    cnt <= 5'd0;
+    intclk <= 1'd0;
+    end
+    else
     begin
     if (cnt < 5'd24) 
     cnt <= cnt+5'd1;
     else
     begin
-    int_clk = ~int_clk; // 100MHz input clock -> 2MHz internal clock -> 1MHz output clock
+    intclk = ~intclk; // 100MHz input clock -> 2MHz internal clock -> 1MHz output clock
     cnt <= 5'd0;
     end
+    if (!SWITCH)
+    begin
+    CHAR_1 <= 8'b0110_0000;
+    CHAR_2 <= 8'b1101_1010;
+    CHAR_3 <= 8'b1111_0010;
+    CHAR_4 <= 8'b0110_0110;
     end
-         
-always_ff @(posedge int_clk or posedge rst)
-    if (rst)
-    state <= RESET;
     else
-    begin        
-case (state)
-RESET:
+    begin
+    CHAR_1 <= 8'b0110_0110;
+    CHAR_2 <= 8'b1111_0010;
+    CHAR_3 <= 8'b1101_1010;
+    CHAR_4 <= 8'b0110_0000;
+    end
+    end 
+    end
+ 
+always_ff @(posedge intclk or negedge rst)
+    begin
+    if (!rst)
     begin
     stb <= 1'd1;
-    oclk <= 1'd1;
     i <= 8'd0;
-    j <= 5'd0;
-    dio <= 'd0;
-    index <= 8'd0;
-    word <= 4'd0;
+    j <= 5'd0; 
+    driver <= 2'd0;
+    oclk <= 1'd1;
     state <= IDLE;
-    data_state <= SET_CMD_1;
     end
+    else
+    begin
+    if (UART && (driver == 2'd0))
+    begin
+    driver <= 2'd1;
+    DATA_BUFF <= {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, CHAR_1, 8'd0, CHAR_2, 8'd0, CHAR_3, 8'd0, CHAR_4, 8'd0};
+    end
+    else if (UART && (driver == 2'd1))
+    driver <= 2'd2;
+    else if (!UART && (driver == 2'd2))
+    driver <= 2'd0;      
+case (state)
 IDLE:
     begin
-    stb <= !DRIVER;
-    if (stb)
+    if (driver == 2'd0)
+    begin
+    stb <= 1'd1;
+    i <= 8'd0;
+    j <= 5'd0;
     state <= IDLE;
-    else
-    state <= CMD;
     end
+    else if (driver == 2'd1)
+    state <= START;
+    end
+START:
+    begin
+    stb <= 1'd0;
+    state <= CMD;
+    end    
 CMD:
     begin
     state <= CMD; 
@@ -107,7 +146,7 @@ CMD:
     stb <= 1'd0;
     oclk <= ~oclk;
     end
-    else if ((i > 8'd15 && i < 8'd20) || i == 8'd36) 
+    else if ((i > 8'd15 && i < 8'd20) || i == 8'd36) //!!!!
     begin
     i <= i+8'd1;
     stb <= 1'd0;
@@ -183,13 +222,21 @@ default:
     state <= IDLE;
 endcase
     end
+    end
     
-always_ff @ (negedge oclk)
+always_ff @ (negedge oclk or negedge rst)
     begin
+    if (!rst)
+    begin
+    dio <= 'd0;
+    index <= 8'd0;  
+    data_state <= SET_CMD_1;
+    end
+    else
 case(data_state)
 SET_CMD_1:
-    begin
-    dio <= CMD_1[index];
+    begin                 
+    dio <= CMD_1[index];  
     index <= index + 8'd1;
     if (index == 8'd7)
     begin
@@ -209,8 +256,7 @@ SET_CMD_2:
     end
 SET_DATA:
     begin
-//    dio <= data_buff[index];
-    dio <= index[0];
+    dio <= DATA_BUFF[index];
     index <= index + 8'd1;
     if (index == 8'd127)
     begin
@@ -228,7 +274,10 @@ SET_CMD_3:
     data_state <= SET_CMD_1;
     end
     end
+default:
+    data_state <= SET_CMD_1;    
     endcase        
     end
 endmodule
+
 
