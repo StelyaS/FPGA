@@ -6,11 +6,11 @@
 ## - rename the used ports (in each line, after get_ports) according to the top level signal names in the project
 
 ## Clock signal
-set_property -dict {PACKAGE_PIN E3 IOSTANDARD LVCMOS33} [get_ports iclk]
-create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports iclk]
+set_property -dict {PACKAGE_PIN E3 IOSTANDARD LVCMOS33} [get_ports iclk] 
+create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports iclk] # Arty A7-35 100 MHz clock   
 
 ## Switches
-set_property -dict {PACKAGE_PIN A8 IOSTANDARD LVCMOS33} [get_ports SWITCH]
+set_property -dict {PACKAGE_PIN A8 IOSTANDARD LVCMOS33} [get_ports SWITCH] # to check 1234 - 4321 data programming 
 #set_property -dict {PACKAGE_PIN C11 IOSTANDARD LVCMOS33} [get_ports {SW[1]}]
 #set_property -dict {PACKAGE_PIN C10 IOSTANDARD LVCMOS33} [get_ports {SW[2]}]
 #set_property -dict {PACKAGE_PIN A10 IOSTANDARD LVCMOS33} [get_ports {SW[3]}]
@@ -36,16 +36,16 @@ set_property -dict {PACKAGE_PIN A8 IOSTANDARD LVCMOS33} [get_ports SWITCH]
 #set_property -dict {PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports {LED[3]}]
 
 ## Buttons
-set_property -dict {PACKAGE_PIN C2 IOSTANDARD LVCMOS33} [get_ports rst]
-set_property -dict {PACKAGE_PIN D9 IOSTANDARD LVCMOS33} [get_ports UART]
+set_property -dict {PACKAGE_PIN C2 IOSTANDARD LVCMOS33} [get_ports rst] # Reset
+set_property -dict {PACKAGE_PIN D9 IOSTANDARD LVCMOS33} [get_ports UART] # drive signal for testing 
 #set_property -dict {PACKAGE_PIN C9 IOSTANDARD LVCMOS33} [get_ports BTN_1]
 #set_property -dict {PACKAGE_PIN B9 IOSTANDARD LVCMOS33} [get_ports BTN_2]
 #set_property -dict {PACKAGE_PIN B8 IOSTANDARD LVCMOS33} [get_ports BTN_3]
 
 ## Pmod Header JA
-set_property -dict {PACKAGE_PIN G13 IOSTANDARD LVCMOS33} [get_ports dio]
-set_property -dict {PACKAGE_PIN B11 IOSTANDARD LVCMOS33} [get_ports oclk]
-set_property -dict {PACKAGE_PIN A11 IOSTANDARD LVCMOS33} [get_ports stb]
+set_property -dict {PACKAGE_PIN G13 IOSTANDARD LVCMOS33} [get_ports dio] # data input-output channel
+set_property -dict {PACKAGE_PIN B11 IOSTANDARD LVCMOS33} [get_ports oclk] # 1MHz output clock
+set_property -dict {PACKAGE_PIN A11 IOSTANDARD LVCMOS33} [get_ports stb] # output strobe signal 
 #set_property -dict { PACKAGE_PIN D12   IOSTANDARD LVCMOS33 } [get_ports { JA[3] }]; #IO_L6P_T0_15 Sch=ja[4]
 #set_property -dict { PACKAGE_PIN D13   IOSTANDARD LVCMOS33 } [get_ports { JA[4] }]; #IO_L6N_T0_VREF_15 Sch=ja[7]
 #set_property -dict { PACKAGE_PIN B18   IOSTANDARD LVCMOS33 } [get_ports { JA[5] }]; #IO_L10P_T1_AD11P_15 Sch=ja[8]
