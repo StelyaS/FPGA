@@ -22,38 +22,46 @@
 
 module TM1638
 (
-    (*mark_debug="true"*)input logic UART, // test drive signal from UART
+    input logic idata_rx, // drive signal from UART
     input logic iclk, // 100 MHz input clock
-    input logic SWITCH, // to check 1234 - 4321 data programming
-    (*mark_debug="true"*)input logic rst, // reset 
-    (*mark_debug="true"*)output logic stb, // output strobe signal
-    (*mark_debug="true"*)output logic dio, // data input-output channel
-    (*mark_debug="true"*)output logic oclk // 1 MHz output clock
+//    input logic SWITCH, // to check 1234 - 4321 data programming
+    input logic [0:31] idata,
+    input logic rst, // reset 
+    output logic stb, // output strobe signal
+    output logic dio, // data input-output channel
+    output logic oclk // 1 MHz output clock
 );
     logic [0:7] CHAR_1;
     logic [0:7] CHAR_2;
     logic [0:7] CHAR_3;
     logic [0:7] CHAR_4;
-    logic [4:0] cnt; 
-    logic [7:0] index;
+
     logic [1:0] driver;
+    
+    logic [4:0] cnt; 
+    logic intclk; // internal clock
+    
+    logic [7:0] index;
     logic [7:0] i;
     logic [4:0] j;
-    (*mark_debug="true"*)logic intclk; // internal clock
+    
+    logic [2:0] state;
     localparam IDLE = 3'd1;
     localparam START = 3'd2;
     localparam CMD = 3'd3;
     localparam DATA = 3'd4;
     localparam DISPLAY = 3'd5;
-    logic [2:0] state = IDLE;
+    
+    logic [2:0] data_state;
     localparam SET_CMD_1 = 3'd1;
     localparam SET_CMD_2 = 3'd2;
     localparam SET_DATA = 3'd3;
     localparam SET_CMD_3 = 3'd4;
-    logic [2:0] data_state = SET_CMD_1;
+    
     localparam [0:7] CMD_1 = 8'b0000_0010; // write data with auto increasing address mode 
     localparam [0:7] CMD_2 = 8'b0000_0011; // starting from address 00H
     localparam [0:7] CMD_3 = 8'b1111_0001; // set max display brightness
+    
     localparam [0:7] D = 8'b0111_1010; // abcdefg "D"
     localparam [0:7] A = 8'b1110_1110; // abcdefg "A"
     localparam [0:7] T = 8'b0001_1110; // abcdefg "T"
@@ -65,7 +73,7 @@ always_ff @(posedge iclk)
     if (!rst) // negative reset 
     begin
     cnt <= 5'd0;
-    intclk <= 1'd0;
+    intclk <= 1'b0;
     end
     else
     begin
@@ -76,22 +84,28 @@ always_ff @(posedge iclk)
     intclk = ~intclk; 
     cnt <= 5'd0;
     end
-    if (!SWITCH) // to check 1234 - 4321 data programming 
-    begin
-    CHAR_1 <= 8'b0110_0000; // abcdefg "1"
-    CHAR_2 <= 8'b1101_1010; // abcdefg "2"
-    CHAR_3 <= 8'b1111_0010; // abcdefg "3"
-    CHAR_4 <= 8'b0110_0110; // abcdefg "4"
-    end
-    else
-    begin
-    CHAR_1 <= 8'b0110_0110; // abcdefg "4"
-    CHAR_2 <= 8'b1111_0010; // abcdefg "3"
-    CHAR_3 <= 8'b1101_1010; // abcdefg "2"
-    CHAR_4 <= 8'b0110_0000; // abcdefg "1"
-    end
+//    if (!SWITCH) // to check 1234 - 4321 data programming 
+//    begin
+//    CHAR_1 <= 8'b0110_0000; // abcdefg "1"
+//    CHAR_2 <= 8'b1101_1010; // abcdefg "2"
+//    CHAR_3 <= 8'b1111_0010; // abcdefg "3"
+//    CHAR_4 <= 8'b0110_0110; // abcdefg "4"
+//    end
+//    else
+//    begin
+//    CHAR_1 <= 8'b0110_0110; // abcdefg "4"
+//    CHAR_2 <= 8'b1111_0010; // abcdefg "3"
+//    CHAR_3 <= 8'b1101_1010; // abcdefg "2"
+//    CHAR_4 <= 8'b0110_0000; // abcdefg "1"
+//    end
     end 
     end
+
+always_ff @(posedge idata_rx) // LUT for ascii -> abcdefg transforming 
+    begin
+    
+    end
+
  
 always_ff @(posedge intclk or negedge rst) // to generate strobe signal and posedge output clock at specific time  
     begin
@@ -106,14 +120,14 @@ always_ff @(posedge intclk or negedge rst) // to generate strobe signal and pose
     end
     else
     begin
-    if (UART && (driver == 2'd0)) // to block rewritting data while drive signal from UART is active
+    if (idata_rx && (driver == 2'd0)) // to block rewritting data while drive signal from UART is active
     begin
     driver <= 2'd1;
-    DATA_BUFF <= {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, CHAR_1, 8'd0, CHAR_2, 8'd0, CHAR_3, 8'd0, CHAR_4, 8'd0};
+    DATA_BUFF <= {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, CHAR_1, 8'd0, CHAR_2, 8'd0, CHAR_3, 8'd0, CHAR_4, 8'd0}; //!!!
     end
-    else if (UART && (driver == 2'd1))
+    else if (idata_rx && (driver == 2'd1))
     driver <= 2'd2;
-    else if (!UART && (driver == 2'd2))
+    else if (!idata_rx && (driver == 2'd2))
     driver <= 2'd0;      
 case (state)
 IDLE: // waiting for driving signal 

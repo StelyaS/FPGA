@@ -21,7 +21,7 @@
 
 
 module TM1638_TB;
-reg UART;
+reg idata_rx;
 reg SWITCH;
 reg iclk;
 reg rst;
@@ -34,7 +34,7 @@ wire dio;
 wire oclk;
 
 TM1638 uut (
-.UART(UART),
+.idata_rx(idata_rx),
 .SWITCH(SWITCH),
 .iclk(iclk),
 .rst(rst),
@@ -49,15 +49,15 @@ TM1638 uut (
 
 initial
 begin
-UART = 1'd0;
+idata_rx = 1'd0;
 iclk = 1'd0;
 rst = 1'd1;
 #5000 rst = 1'd0;
 #20 rst = 1'd1;
-#10000 UART = 1'd1;
-#200000 UART = 1'd0;
-#200000 UART = 1'd1;
-#200000 UART = 1'd0;
+#10000 idata_rx = 1'd1;
+#200000 idata_rx = 1'd0;
+#200000 idata_rx = 1'd1;
+#200000 idata_rx = 1'd0;
 #100000000 $finish;
 end
 always
