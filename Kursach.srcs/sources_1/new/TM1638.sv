@@ -22,19 +22,19 @@
 
 module TM1638
 (
-    input logic idata_rx, // drive signal from UART
     input logic iclk, // 100 MHz input clock
+    input logic idata_rx, // input drive signal from UART
 //    input logic SWITCH, // to check 1234 - 4321 data programming
-    input logic [0:31] idata,
+//    input logic [0:31] idata, // input data from UART
+    input logic [0:7] char_1, // input char 1
+    input logic [0:7] char_2, // input char 2
+    input logic [0:7] char_3, // input char 3
+    input logic [0:7] char_4, // input char 4
     input logic rst, // reset 
     output logic stb, // output strobe signal
     output logic dio, // data input-output channel
     output logic oclk // 1 MHz output clock
 );
-    logic [0:7] CHAR_1;
-    logic [0:7] CHAR_2;
-    logic [0:7] CHAR_3;
-    logic [0:7] CHAR_4;
 
     logic [1:0] driver;
     
@@ -58,6 +58,8 @@ module TM1638
     localparam SET_DATA = 3'd3;
     localparam SET_CMD_3 = 3'd4;
     
+//    logic LUT_state;
+    
     localparam [0:7] CMD_1 = 8'b0000_0010; // write data with auto increasing address mode 
     localparam [0:7] CMD_2 = 8'b0000_0011; // starting from address 00H
     localparam [0:7] CMD_3 = 8'b1111_0001; // set max display brightness
@@ -65,7 +67,7 @@ module TM1638
     localparam [0:7] D = 8'b0111_1010; // abcdefg "D"
     localparam [0:7] A = 8'b1110_1110; // abcdefg "A"
     localparam [0:7] T = 8'b0001_1110; // abcdefg "T"
-    logic [0:127] DATA_BUFF ={D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; //!!
+    logic [0:127] DATA_BUFF; //={D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; //!!
 
     
 always_ff @(posedge iclk)
@@ -84,26 +86,7 @@ always_ff @(posedge iclk)
     intclk = ~intclk; 
     cnt <= 5'd0;
     end
-//    if (!SWITCH) // to check 1234 - 4321 data programming 
-//    begin
-//    CHAR_1 <= 8'b0110_0000; // abcdefg "1"
-//    CHAR_2 <= 8'b1101_1010; // abcdefg "2"
-//    CHAR_3 <= 8'b1111_0010; // abcdefg "3"
-//    CHAR_4 <= 8'b0110_0110; // abcdefg "4"
-//    end
-//    else
-//    begin
-//    CHAR_1 <= 8'b0110_0110; // abcdefg "4"
-//    CHAR_2 <= 8'b1111_0010; // abcdefg "3"
-//    CHAR_3 <= 8'b1101_1010; // abcdefg "2"
-//    CHAR_4 <= 8'b0110_0000; // abcdefg "1"
-//    end
     end 
-    end
-
-always_ff @(posedge idata_rx) // LUT for ascii -> abcdefg transforming 
-    begin
-    
     end
 
  
@@ -116,6 +99,7 @@ always_ff @(posedge intclk or negedge rst) // to generate strobe signal and pose
     j <= 5'd0; 
     driver <= 2'd0;
     oclk <= 1'd1;
+    DATA_BUFF <={D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0};
     state <= IDLE;
     end
     else
@@ -123,7 +107,7 @@ always_ff @(posedge intclk or negedge rst) // to generate strobe signal and pose
     if (idata_rx && (driver == 2'd0)) // to block data from rewritting while drive signal from UART is active
     begin
     driver <= 2'd1;
-    DATA_BUFF <= {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, CHAR_1, 8'd0, CHAR_2, 8'd0, CHAR_3, 8'd0, CHAR_4, 8'd0}; //!!!
+    DATA_BUFF <= {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, char_1, 8'd0, char_2, 8'd0, char_3, 8'd0, char_4, 8'd0}; //!!!
     end
     else if (idata_rx && (driver == 2'd1))
     driver <= 2'd2;

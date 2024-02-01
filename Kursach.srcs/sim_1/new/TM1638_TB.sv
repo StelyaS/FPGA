@@ -21,9 +21,10 @@
 
 
 module TM1638_TB;
-reg idata_rx;
-reg SWITCH;
+//reg SWITCH;
 reg iclk;
+reg idata_rx;
+reg [0:31] idata;
 reg rst;
 //reg CHAR_1;
 //reg CHAR_2;
@@ -34,10 +35,11 @@ wire dio;
 wire oclk;
 
 TM1638 uut (
-.idata_rx(idata_rx),
-.SWITCH(SWITCH),
+//.SWITCH(SWITCH),
 .iclk(iclk),
+.idata_rx(idata_rx),
 .rst(rst),
+.idata(idata),
 //.CHAR_1(CHAR_1),
 //.CHAR_2(CHAR_2),
 //.CHAR_3(CHAR_3),
@@ -52,8 +54,10 @@ begin
 idata_rx = 1'd0;
 iclk = 1'd0;
 rst = 1'd1;
+idata = 32'b0000_0000_0000_0000_0000_0000_0000_0000;
 #5000 rst = 1'd0;
 #20 rst = 1'd1;
+#100 idata = 32'b0011_0001_0011_0010_0011_0011_0011_0100;
 #10000 idata_rx = 1'd1;
 #200000 idata_rx = 1'd0;
 #200000 idata_rx = 1'd1;
