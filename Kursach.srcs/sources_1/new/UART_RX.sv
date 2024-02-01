@@ -23,10 +23,10 @@
 module UART_RX
 (
     input logic iclk,
-    input logic rst,
-    input logic uart_rx_data,
-    output logic [0:31] odata,
-    output logic odata_rx
+    (*mark_debug="true"*)input logic rst,
+    (*mark_debug="true"*)input logic uart_rx_data,
+//    output logic [0:31] odata,
+    (*mark_debug="true"*)output logic odata_rx
 );
 
     localparam BAUD_RATE = 115200;
@@ -45,8 +45,9 @@ module UART_RX
     localparam DATA = 3'd1;
     localparam STOP = 3'd2;
     
-    logic [0:7] rx_data;
+    logic [7:0] rx_data;
 //    logic data_bit;
+    (*mark_debug="true"*)logic [0:31] odata;
     
 always_ff @(posedge iclk)
     begin
@@ -120,25 +121,25 @@ STOP:
     begin
     if (j == 2'd0)
     begin
-    odata[0:7] <= rx_data[0:7];
+    odata[0:7] <= rx_data[7:0];
     j <= j+2'd1;
     state <= IDLE;
     end
     else if (j == 2'd1)
     begin
-    odata[8:15] <= rx_data[0:7];
+    odata[8:15] <= rx_data[7:0];
     j <= j+2'd1;
     state <= IDLE;
     end
     else if (j == 2'd2)
     begin
-    odata[16:23] <= rx_data[0:7];
+    odata[16:23] <= rx_data[7:0];
     j <= j+2'd1;
     state <= IDLE;
     end
     else if (j == 2'd3)
     begin
-    odata[24:31] <= rx_data[0:7];
+    odata[24:31] <= rx_data[7:0];
     j <= 2'd3;
     state <= IDLE;
     end
@@ -148,5 +149,4 @@ default:
 endcase
     end
     end 
-      
 endmodule

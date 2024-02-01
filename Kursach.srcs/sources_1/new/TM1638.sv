@@ -65,7 +65,7 @@ module TM1638
     localparam [0:7] D = 8'b0111_1010; // abcdefg "D"
     localparam [0:7] A = 8'b1110_1110; // abcdefg "A"
     localparam [0:7] T = 8'b0001_1110; // abcdefg "T"
-    logic [0:127] DATA_BUFF; //!!
+    logic [0:127] DATA_BUFF ={D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0}; //!!
 
     
 always_ff @(posedge iclk)
@@ -120,7 +120,7 @@ always_ff @(posedge intclk or negedge rst) // to generate strobe signal and pose
     end
     else
     begin
-    if (idata_rx && (driver == 2'd0)) // to block rewritting data while drive signal from UART is active
+    if (idata_rx && (driver == 2'd0)) // to block data from rewritting while drive signal from UART is active
     begin
     driver <= 2'd1;
     DATA_BUFF <= {D, 8'd0, A, 8'd0, T, 8'd0, A, 8'd0, CHAR_1, 8'd0, CHAR_2, 8'd0, CHAR_3, 8'd0, CHAR_4, 8'd0}; //!!!

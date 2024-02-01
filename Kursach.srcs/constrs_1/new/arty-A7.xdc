@@ -7,7 +7,7 @@
 
 ## Clock signal
 set_property -dict {PACKAGE_PIN E3 IOSTANDARD LVCMOS33} [get_ports iclk]
-create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports iclk]; # Arty A7-35 100 MHz clock
+create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports iclk]
 
 ## Switches
 #set_property -dict {PACKAGE_PIN A8 IOSTANDARD LVCMOS33} [get_ports SWITCH]; # to check 1234 - 4321 data programming
@@ -36,7 +36,7 @@ create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_
 #set_property -dict {PACKAGE_PIN T10 IOSTANDARD LVCMOS33} [get_ports {LED[3]}]
 
 ## Buttons
-set_property -dict {PACKAGE_PIN C2 IOSTANDARD LVCMOS33} [get_ports rst];  #Reset
+set_property -dict {PACKAGE_PIN C2 IOSTANDARD LVCMOS33} [get_ports rst]
 #set_property -dict {PACKAGE_PIN D9 IOSTANDARD LVCMOS33} [get_ports idata_rx]; # drive signal for testing
 #set_property -dict {PACKAGE_PIN C9 IOSTANDARD LVCMOS33} [get_ports BTN_1]
 #set_property -dict {PACKAGE_PIN B9 IOSTANDARD LVCMOS33} [get_ports BTN_2]
@@ -46,8 +46,8 @@ set_property -dict {PACKAGE_PIN C2 IOSTANDARD LVCMOS33} [get_ports rst];  #Reset
 #set_property -dict {PACKAGE_PIN G13 IOSTANDARD LVCMOS33} [get_ports dio]; # data input-output channel
 #set_property -dict {PACKAGE_PIN B11 IOSTANDARD LVCMOS33} [get_ports oclk]; # 1MHz output clock
 #set_property -dict {PACKAGE_PIN A11 IOSTANDARD LVCMOS33} [get_ports stb]; # output strobe signal
-#set_property -dict { PACKAGE_PIN D12   IOSTANDARD LVCMOS33 } [get_ports { JA[3] }]; #IO_L6P_T0_15 Sch=ja[4]
-#set_property -dict { PACKAGE_PIN D13   IOSTANDARD LVCMOS33 } [get_ports { JA[4] }]; #IO_L6N_T0_VREF_15 Sch=ja[7]
+#set_property -dict { PACKAGE_PIN D12   IOSTANDARD LVCMOS33 } [get_ports odata]; #
+set_property -dict {PACKAGE_PIN D13 IOSTANDARD LVCMOS33} [get_ports odata_rx]
 #set_property -dict { PACKAGE_PIN B18   IOSTANDARD LVCMOS33 } [get_ports { JA[5] }]; #IO_L10P_T1_AD11P_15 Sch=ja[8]
 #set_property -dict { PACKAGE_PIN A18   IOSTANDARD LVCMOS33 } [get_ports { JA[6] }]; #IO_L10N_T1_AD11N_15 Sch=ja[9]
 #set_property -dict { PACKAGE_PIN K16   IOSTANDARD LVCMOS33 } [get_ports { JA[7] }]; #IO_25_15 Sch=ja[10]
@@ -225,3 +225,35 @@ set_property -dict {PACKAGE_PIN A9 IOSTANDARD LVCMOS33} [get_ports uart_rx_data]
 
 
 
+
+
+create_debug_core u_ila_0 ila
+set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
+set_property ALL_PROBE_SAME_MU_CNT 4 [get_debug_cores u_ila_0]
+set_property C_ADV_TRIGGER true [get_debug_cores u_ila_0]
+set_property C_DATA_DEPTH 32768 [get_debug_cores u_ila_0]
+set_property C_EN_STRG_QUAL false [get_debug_cores u_ila_0]
+set_property C_INPUT_PIPE_STAGES 0 [get_debug_cores u_ila_0]
+set_property C_TRIGIN_EN false [get_debug_cores u_ila_0]
+set_property C_TRIGOUT_EN false [get_debug_cores u_ila_0]
+set_property port_width 1 [get_debug_ports u_ila_0/clk]
+connect_debug_port u_ila_0/clk [get_nets [list iclk_IBUF_BUFG]]
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe0]
+set_property port_width 32 [get_debug_ports u_ila_0/probe0]
+connect_debug_port u_ila_0/probe0 [get_nets [list {odata[31]} {odata[30]} {odata[29]} {odata[28]} {odata[27]} {odata[26]} {odata[25]} {odata[24]} {odata[23]} {odata[22]} {odata[21]} {odata[20]} {odata[19]} {odata[18]} {odata[17]} {odata[16]} {odata[15]} {odata[14]} {odata[13]} {odata[12]} {odata[11]} {odata[10]} {odata[9]} {odata[8]} {odata[7]} {odata[6]} {odata[5]} {odata[4]} {odata[3]} {odata[2]} {odata[1]} {odata[0]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe1]
+set_property port_width 1 [get_debug_ports u_ila_0/probe1]
+connect_debug_port u_ila_0/probe1 [get_nets [list odata_rx_OBUF]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe2]
+set_property port_width 1 [get_debug_ports u_ila_0/probe2]
+connect_debug_port u_ila_0/probe2 [get_nets [list p_0_in4_in]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe3]
+set_property port_width 1 [get_debug_ports u_ila_0/probe3]
+connect_debug_port u_ila_0/probe3 [get_nets [list p_0_in6_in]]
+set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
+set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
+set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
+connect_debug_port dbg_hub/clk [get_nets iclk_IBUF_BUFG]
