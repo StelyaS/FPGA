@@ -21,27 +21,29 @@
 
 
 module TM1638_TB;
-reg UART;
-reg SWITCH;
+//reg SWITCH;
 reg iclk;
+reg idata_rx;
+//reg [0:31] idata;
+reg [0:7] char_1;
+reg [0:7] char_2;
+reg [0:7] char_3;
+reg [0:7] char_4;
 reg rst;
-//reg CHAR_1;
-//reg CHAR_2;
-//reg CHAR_3;
-//reg CHAR_4;
 wire stb;
 wire dio;
 wire oclk;
 
 TM1638 uut (
-.UART(UART),
-.SWITCH(SWITCH),
+//.SWITCH(SWITCH),
 .iclk(iclk),
+.idata_rx(idata_rx),
+//.idata(idata),
+.char_1(char_1),
+.char_2(char_2),
+.char_3(char_3),
+.char_4(char_4),
 .rst(rst),
-//.CHAR_1(CHAR_1),
-//.CHAR_2(CHAR_2),
-//.CHAR_3(CHAR_3),
-//.CHAR_4(CHAR_4),
 .stb(stb),
 .dio(dio),
 .oclk(oclk)
@@ -49,15 +51,20 @@ TM1638 uut (
 
 initial
 begin
-UART = 1'd0;
+idata_rx = 1'd0;
 iclk = 1'd0;
 rst = 1'd1;
 #5000 rst = 1'd0;
 #20 rst = 1'd1;
-#10000 UART = 1'd1;
-#200000 UART = 1'd0;
-#200000 UART = 1'd1;
-#200000 UART = 1'd0;
+#10000 char_1 = 8'b1111_1110;
+#1 char_2 = 8'b1111_1110;
+#1 char_3 = 8'b1111_1110;
+#1 char_4 = 8'b1111_1110;
+//#100 idata = 32'b0011_0001_0011_0010_0011_0011_0011_0100;
+#300000 idata_rx = 1'd1;
+#200000 idata_rx = 1'd0;
+#200000 idata_rx = 1'd1;
+#200000 idata_rx = 1'd0;
 #100000000 $finish;
 end
 always
